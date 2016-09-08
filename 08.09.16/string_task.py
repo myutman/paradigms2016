@@ -10,7 +10,7 @@
 def verbing(s):
     if (len(s) < 3):
         return s
-    if (s[len(s) - 3:len(s):] == 'ing'):
+    if (s[-3:] == 'ing'):
         return s + 'ly' 
     return s + 'ing'
  
@@ -44,4 +44,4 @@ def not_bad(s):
 def front_back(a, b):
     diva = (len(a) + 1) // 2 
     divb = (len(b) + 1) // 2
-    return a[0:diva:] + b[0:divb:] + a[diva:len(a):] + b[divb:len(b):]
+    return a[:diva:] + b[:divb:] + a[diva:] + b[divb:]

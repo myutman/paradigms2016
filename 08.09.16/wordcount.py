@@ -36,7 +36,7 @@ import sys
 # and builds and returns a word/count dict for it.
 # Then print_words() and print_top() can just call the utility function.
 
-def get(filename):
+def parse_file(filename):
     inf = open(filename, "r")
     s = []
     s1 = inf.readline()
@@ -49,13 +49,6 @@ def get(filename):
         for s2 in lst:
             snew.append(s2)
     s = snew
-    for c in '.,!?-:;"\'':
-        snew = []
-        for s1 in s:
-            lst = s1.split(c)
-            for s2 in lst:
-                snew.append(s2)
-        s = snew
     d = dict()
     for s1 in s:
         s1 = s1.lower()
@@ -64,23 +57,23 @@ def get(filename):
         else:
             d[s1] = 1;
     s = []
-    d.pop('')
+    if '' in d:
+        d.pop('')
     for s1 in d:
         s.append((s1,d[s1]))
     return s
 
 def print_words(filename):
-    lst = get(filename)
+    lst = parse_file(filename)
     lst = sorted(lst)
-    for s in lst:
-        print(s[0], s[1]) 
+    for a, b in lst:
+        print(a, b) 
 
 def print_top(filename):
-    lst = get(filename)
+    lst = parse_file(filename)
     lst = sorted(lst, key = lambda x: (-x[1], x[0]))
-    for i in range(min(len(lst), 20)):
-        s = lst[i]
-        print(s[0], s[1])
+    for a, b in lst[:20:]:
+        print(a, b)
 
 ###
  
