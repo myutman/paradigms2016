@@ -40,7 +40,7 @@ def parse_file(filename):
     inf = open(filename, "r")
     s = []
     s1 = inf.readline()
-    while (s1 != ''):
+    while s1 != '':
         s.append(s1)
         s1 = inf.readline()
     snew = []

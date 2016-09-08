@@ -8,9 +8,9 @@
 # Example input: 'read'
 # Example output: 'reading'
 def verbing(s):
-    if (len(s) < 3):
+    if len(s) < 3:
         return s
-    if (s[-3:] == 'ing'):
+    if s[-3:] == 'ing':
         return s + 'ly' 
     return s + 'ing'
  
@@ -26,7 +26,7 @@ def verbing(s):
 def not_bad(s):
     a = s.find('not')
     b = s.find('bad')
-    if (a < b and a != -1 and b != -1):
+    if a < b and a != -1 and b != -1:
         s = s.replace(s[a:b + 3:], 'good')
     return s
  
