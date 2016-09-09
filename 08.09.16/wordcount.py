@@ -39,16 +39,12 @@ import sys
 def parse_file(filename):
     inf = open(filename, "r")
     s = []
-    s1 = inf.readline()
-    while s1 != '':
-        s.append(s1)
-        s1 = inf.readline()
-    snew = []
-    for s1 in s:
-        lst = s1.split()
-        for s2 in lst:
-            snew.append(s2)
-    s = snew
+    for s1 in inf:
+        s += s1.split()
+    return s
+
+def count_words(filename):
+    s = parse_file(filename)
     d = dict()
     for s1 in s:
         s1 = s1.lower()
@@ -56,21 +52,21 @@ def parse_file(filename):
             d[s1] += 1
         else:
             d[s1] = 1;
-    s = []
+    an = []
     if '' in d:
         d.pop('')
     for s1 in d:
-        s.append((s1,d[s1]))
-    return s
+        an.append((s1,d[s1]))
+    return an
 
 def print_words(filename):
-    lst = parse_file(filename)
+    lst = count_words(filename)
     lst = sorted(lst)
     for a, b in lst:
         print(a, b) 
 
 def print_top(filename):
-    lst = parse_file(filename)
+    lst = count_words(filename)
     lst = sorted(lst, key = lambda x: (-x[1], x[0]))
     for a, b in lst[:20:]:
         print(a, b)
