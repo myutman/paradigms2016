@@ -1,4 +1,4 @@
-#This program finds duplicates in directory that was given as a command line argument.
+"""This program finds duplicates in directory that was given as a command line argument."""
 
 import sys
 import argparse
@@ -7,14 +7,15 @@ import re
 import hashlib
 import collections
 
-def get_hash(z):
-    hasher = hashlib.sha1(z)
-    return hasher.hexdigest()        
-
-def read_bytes(filename):
+def get_file_hash(filename):
+    hasher = hashlib.sha1()
     with open(filename, 'rb') as f:
-        stats = os.stat(filename)
-        return f.read(stats.st_size)
+        a = f.read(7200)
+        while (a):
+            hasher.update(a)
+            a = f.read(7200)
+    return hasher.hexdigest()    
+    
 
 def walk_through_directories(top_dir):
     dic = collections.defaultdict(list)
@@ -22,8 +23,7 @@ def walk_through_directories(top_dir):
         for filename in files:
             if (not pattern.match(filename)):
                 fullname = os.path.join(root, filename)
-                z = read_bytes(fullname)            
-                a = get_hash(z)
+                a = get_file_hash(fullname)
                 dic[a].append(os.path.relpath(fullname, top_dir))
     return dic
 
