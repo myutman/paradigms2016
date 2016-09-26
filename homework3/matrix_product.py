@@ -1,10 +1,12 @@
 import numpy as np
+import math
+import sys
 
 
 def mult(a, b, k):
     if (k == 1):
         return a * b
-    c = np.array([[0] * k for i in range(k)])
+    c = np.zeros((k, k), dtype=np.int)
     k //= 2
     a11 = a[:k, :k]
     a12 = a[:k, k:]
@@ -27,49 +29,44 @@ def mult(a, b, k):
     c[k:, k:] = p1 - p2 + p3 + p6
     return c
 
-n = int(input())
-k = 1
-while k < n:
-    k += k
+def read_matrix(n, k, f=sys.stdin):
+    a = np.loadtxt(f, dtype=np.int, ndmin=2)
+    b = list(map(list, a[n:]))
+    a = list(map(list, a[:n]))
+    for i in range(n):
+        a[i] += [0] * (k - n)
+    for i in range(n, k):
+        a.append([0] * k)
+    a = np.array(a)
+    for i in range(n):
+        b[i] += [0] * (k - n)
+    for i in range(n, k):
+        b.append([0] * k)
+    b = np.array(b)
+    return a, b
 
-ls = []
-for i in range(n):
-    ls1 = list(map(int, input().split()))
-    while (len(ls1) < k):
-        ls1.append(0)
-    ls += ls1
-for i in range(n, k):
-    for j in range(k):
-        ls.append(0)
-a = np.array(ls)  
-a = a.reshape((k, k))
-
-ls = []
-for i in range(n):
-    ls1 = list(map(int, input().split()))
-    while (len(ls1) < k):
-        ls1.append(0)
-    ls += ls1
-for i in range(n, k):
-    for j in range(k):
-        ls.append(0)
-b = np.array(ls)
-b = b.reshape(k, k)
-
-c = mult(a, b, k)
-print()
-for i in range(n):
-    for j in range(n):
-        print(c[i][j], end=' ')
+def output(c, n):
     print()
+    for i in range(n):
+        for j in range(n):
+            print(c[i][j], end=' ')
+        print()
 
-c1 = np.dot(a, b)
-print()
-"""for i in range(n):
-    for j in range(n):
-        print(c1[i][j], end=' ')
-    print()"""
-print()
-if (c.all() == c1.all()):
-    print("Correct")
+def test(filename):
+    f = open(filename)
+    n = int(f.readline())
+    k = 2 ** math.ceil(math.log2(n))
+    a, b = read_matrix(n, k, f)
+    c = mult(a, b, k)
+    c1 = np.dot(a, b)
+    if c.all() == c1.all():
+        print("correct")    
+
+if __name__ == "__main__":
+    n = int(input())
+    k = 2 ** math.ceil(math.log2(n))
+    a, b = read_matrix(n, k)
+    c = mult(a, b, k)
+    output(c, n)
+
     
