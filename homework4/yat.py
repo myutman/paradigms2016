@@ -2,15 +2,12 @@ class Scope:
 
     def __init__(self, parent=None):
         self.d = dict()
-        if (parent != None):
-            for key in parent.d:
-                self.d[key] = parent.d[key]
         self.parent = parent
 
     def __getitem__(self, key):
 
         if (not key in self.d):
-            return None
+            return self.parent[key] if self.parent != None else None
         return self.d[key]    
 
     def __setitem__(self, key, value):
