@@ -1,10 +1,10 @@
 class Scope:
 
     def __init__(self, parent=None):
-        if (parent == None):
-            self.d = dict()
-        else:
-            self.d = parent.d
+        self.d = dict()
+        if (parent != None):
+            for key in parent.d:
+                self.d[key] = parent.d[key]
         self.parent = parent
 
     def __getitem__(self, key):
@@ -61,16 +61,11 @@ class Conditional:
         self.if_false = if_false
 
     def evaluate(self, scope):
-        if (self.condition.evaluate(scope).value):
-            tmp = None
-            for var in self.if_true:
-                tmp = var.evaluate(scope)
-            return tmp
-        else:
-            tmp = None
-            for var in self.if_false:
-                tmp = var.evaluate(scope)
-            return tmp
+        branch = self.if_true if self.condition.evaluate(scope).value else self.if_false
+        tmp = None
+        for var in branch:
+            tmp = var.evaluate(scope)
+        return tmp
 
 
 class Print:
@@ -107,14 +102,9 @@ class FunctionCall:
     def evaluate(self, scope):
         function = self.fun_expr.evaluate(scope)
         call_scope = Scope(scope)
-        lst = []
-        for var in self.args:
-            lst.append(var.evaluate(scope))
-        if len(lst) != len(function.args):
-            print("wrong number of args")
-            exit(0)
-        for i in range(len(lst)):
-            call_scope[function.args[i]] = lst[i]
+        lst = [] 
+        for name, arg in zip(function.args, self.args):
+            call_scope[name] = arg.evaluate(scope)
         return function.evaluate(call_scope)
 
 
@@ -137,36 +127,14 @@ class BinaryOperation:
         self.lhs = lhs
         self.op = op
         self.rhs = rhs
+        self.d = {'+': (lambda x,y: x + y), '*': (lambda x,y: x * y), '-': (lambda x,y: x - y), '/': (lambda x,y: x // y),
+                  '%': (lambda x,y: x % y), '==': (lambda x,y: x == y), '!=': (lambda x,y: x != y), '<': (lambda x,y: x < y),
+                  '>': (lambda x,y: x > y), '<=': (lambda x,y: x <= y), '>=': (lambda x,y: x >= y), '&&': (lambda x,y: x and y), '||': (lambda x,y: x or y)}
 
     def evaluate(self, scope):
         lhs = self.lhs.evaluate(scope)
         rhs = self.rhs.evaluate(scope)
-        if self.op == '+':
-            return Number(lhs.value + rhs.value)
-        if self.op == '*':
-            return Number(lhs.value * rhs.value)
-        if self.op == '-':
-            return Number(lhs.value - rhs.value)
-        if self.op == '/':
-            return Number(lhs.value // rhs.value)
-        if self.op == '%':
-            return Number(lhs.value % rhs.value)
-        if self.op == '==':
-            return Number(lhs.value == rhs.value)
-        if self.op == '!=':
-            return Number(lhs.value != rhs.value)
-        if self.op == '<':
-            return Number(lhs.value < rhs.value)
-        if self.op == '<=':
-            return Number(lhs.value <= rhs.value)
-        if self.op == '>=':
-            return Number(lhs.value >= rhs.value)
-        if self.op == '&&':
-            return Number(lhs.value and rhs.value)
-        if self.op == '||':
-            return Number(lhs.value or rhs.value)
-        if self.op == '>':
-            return Number(lhs.value > rhs.value)
+        return Number(self.d[self.op](lhs.value, rhs.value))
 
 
 class UnaryOperation:
@@ -175,13 +143,12 @@ class UnaryOperation:
     def __init__(self, op, expr):
         self.op = op
         self.expr = expr
+        self.d = {'-': (lambda x: -x), '!': (lambda x: not x)}
 
     def evaluate(self, scope):
         expr = self.expr.evaluate(scope)
-        if (self.op == '-'):
-            return Number(-expr.value)
-        if (self.op == '!'):
-            return Number(not expr.value)
+        return Number(self.d[self.op](expr.value))
+       
 
 
 def example():
