@@ -1,4 +1,5 @@
 import printer
+import folder
 
 class Scope:
 
@@ -178,12 +179,23 @@ def my_tests():
                                     [FunctionCall(Reference("next_prime"), [BinaryOperation(Reference('n'), '+', Number(1))])], [Reference('n')])]))
     c = FunctionDefinition("main", Function([], [b, Print(FunctionCall(Reference("next_prime"), [Read("tmp")]))]))
     d = FunctionCall(c, [])
-    d.evaluate(abacaba)
+    #d.evaluate(abacaba)
     ppt = printer.PrettyPrinter()
     print("\n")
     ppt.visit(d, 0)
     print()
 
+def my_tests2():
+    z = Conditional(BinaryOperation(Reference('a'), '==', Number(0)), [BinaryOperation(Reference('a'), '*', UnaryOperation('-', Number(0)))], None)
+    a = FunctionDefinition('ask', Function(('a'), [z]))
+    b = FunctionDefinition('func', Function(('a'), [a, FunctionCall(Reference('ask'), [BinaryOperation(Reference('a'), '-', Reference('a'))])]))
+    cf = folder.ConstantFolder()
+    pp = printer.PrettyPrinter()
+    c = cf.visit(b)
+    #print(type(c))
+    pp.visit(c, 0)
+
 if __name__ == '__main__':
     example()
     my_tests()
+    my_tests2()

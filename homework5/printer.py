@@ -30,7 +30,7 @@ class PrettyPrinter:
         for var in cond.if_true:
             self.visit(var, tabs + 1)
             print(";")
-        if len(cond.if_false):
+        if cond.if_false:
             print("\t" * tabs + "} else {")
             for var in cond.if_false:
                 self.visit(var, tabs + 1)
