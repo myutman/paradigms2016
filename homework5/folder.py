@@ -1,4 +1,4 @@
-from yat import *
+
 
 class ConstantFolder:
     def visit(self, tree):
@@ -11,16 +11,16 @@ class ConstantFolder:
 
     def visitFunctionDefinition(self, fun):
         body = [self.visit(var) for var in fun.function.body] 
-        return FunctionDefinition(fun.name, Function(fun.function.args, body))
+        return model.FunctionDefinition(fun.name, model.Function(fun.function.args, body))
 
     def visitConditional(self, cond):
         condition = self.visit(cond.condition)
         if_true = [self.visit(var) for var in cond.if_true]
-        if_false = ([self.visit(var) for var in cond.if_false] if cond.if_false else None)
-        return Conditional(condition, if_true, if_false)
+        if_false = ([self.visit(var) for var in cond.if_false] if (cond.if_false != None) else None)
+        return model.Conditional(condition, if_true, if_false)
 
     def visitPrint(self, prt):
-        return Print(self.visit(prt.expr))
+        return model.Print(self.visit(prt.expr))
 
     def visitRead(self, rd):
         return rd
@@ -28,7 +28,7 @@ class ConstantFolder:
     def visitFunctionCall(self, fun):
         fun_expr = self.visit(fun.fun_expr)
         args = [self.visit(var) for var in fun.args]
-        return FunctionCall(fun_expr, args)
+        return model.FunctionCall(fun_expr, args)
         
     def visitReference(self, ref):
         return ref
@@ -36,21 +36,18 @@ class ConstantFolder:
     def visitBinaryOperation(self, bnr):
         lhs = self.visit(bnr.lhs)
         rhs = self.visit(bnr.rhs)
-        n1 = lhs.__class__.__name__
-        n2 = rhs.__class__.__name__
-        if n1 ==  "Number" and n2 == "Number":
-            return Number(bnr.d[bnr.op](lhs.value, rhs.balue))
-        if bnr.op == '*' and n1 == "Number" and (not lhs.value) and n2 == "Reference":
+        if isinstance(lhs, model.Number) and isinstance(rhs, model.Number):
+            return bnr.evaluate(Scope())
+        if bnr.op == '*' and isinstance(lhs, model.Number) and (not lhs.value) and isinstance(rhs, model.Reference):
             return Number(0)
-        if bnr.op == '*' and n2 == "Number" and (not rhs.value) and n1 == "Reference":
+        if bnr.op == '*' and isinstance(rhs, model.Number) and (not rhs.value) and isinstance(lhs, model.Reference):
             return Number(0)
-        if bnr.op == '-' and n1 == "Reference" and n2 == "Reference" and (lhs.name == rhs.name):
+        if bnr.op == '-' and isinstance(lhs, model.Reference) and isinstance(rhs, model.Reference) and (lhs.name == rhs.name):
             return Number(0)
-        return BinaryOperation(lhs, bnr.op, rhs)
+        return model.BinaryOperation(lhs, bnr.op, rhs)
 
     def visitUnaryOperation(self, unr):
         expr = self.visit(unr.expr)
-        nm = expr.__class__.__name__
-        if nm == "Number":
-            return Number(unr.d[unr.op](expr.value))
-        return UnaryOperation(unr.op, expr)
+        if isinstance(expr, model.Number):
+            return unr.evaluate(Scope())
+        return model.UnaryOperation(unr.op, expr)

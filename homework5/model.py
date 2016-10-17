@@ -1,5 +1,5 @@
-import printer
-import folder
+import yat.printer
+import yat.folder
 
 class Scope:
 
@@ -167,7 +167,7 @@ def example():
     a = FunctionCall(Reference('foo'),
                  [Number(5), UnaryOperation('-', Number(3))])
     a.evaluate(scope)
-    ppt = printer.PrettyPrinter()
+    ppt = yat.printer.PrettyPrinter()
     ppt.visit(a, 0)
 
 def my_tests():
@@ -180,17 +180,17 @@ def my_tests():
     c = FunctionDefinition("main", Function([], [b, Print(FunctionCall(Reference("next_prime"), [Read("tmp")]))]))
     d = FunctionCall(c, [])
     #d.evaluate(abacaba)
-    ppt = printer.PrettyPrinter()
+    ppt = yat.printer.PrettyPrinter()
     print("\n")
     ppt.visit(d, 0)
     print()
 
 def my_tests2():
-    z = Conditional(BinaryOperation(Reference('a'), '==', Number(0)), [BinaryOperation(Reference('a'), '*', UnaryOperation('-', Number(0)))], None)
+    z = Conditional(BinaryOperation(Reference('a'), '==', Number(0)), [BinaryOperation(Reference('a'), '*', UnaryOperation('-', Number(0)))], [])
     a = FunctionDefinition('ask', Function(('a'), [z]))
     b = FunctionDefinition('func', Function(('a'), [a, FunctionCall(Reference('ask'), [BinaryOperation(Reference('a'), '-', Reference('a'))])]))
-    cf = folder.ConstantFolder()
-    pp = printer.PrettyPrinter()
+    cf = yat.folder.ConstantFolder()
+    pp = yat.printer.PrettyPrinter()
     c = cf.visit(b)
     #print(type(c))
     pp.visit(c, 0)
