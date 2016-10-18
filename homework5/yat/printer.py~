@@ -5,7 +5,7 @@ class PrettyPrinter:
     def __init__(self):
         self.b = False
 
-    def visit(self, tree, tabs):
+    def visit(self, tree, tabs = 0):
         b = self.b
         self.b = True
         name = tree.__class__.__name__

@@ -36,18 +36,22 @@ class ConstantFolder:
     def visitBinaryOperation(self, bnr):
         lhs = self.visit(bnr.lhs)
         rhs = self.visit(bnr.rhs)
+        #print(lhs.__class__.__name__ + rhs.__class__.__name__)
         if isinstance(lhs, yat.model.Number) and isinstance(rhs, yat.model.Number):
-            return bnr.evaluate(Scope())
-        if bnr.op == '*' and isinstance(lhs, yat.model.Number) and (not lhs.value) and isinstance(rhs, yat.model.Reference):
-            return Number(0)
-        if bnr.op == '*' and isinstance(rhs, yat.model.Number) and (not rhs.value) and isinstance(lhs, yat.model.Reference):
-            return Number(0)
-        if bnr.op == '-' and isinstance(lhs, yat.model.Reference) and isinstance(rhs, yat.model.Reference) and (lhs.name == rhs.name):
-            return Number(0)
+            return (yat.model.BinaryOperation(lhs, bnr.op, rhs)).evaluate(yat.model.Scope())
+        if bnr.op == '*' and isinstance(lhs, yat.model.Number) and isinstance(rhs, yat.model.Reference):
+            if not lhs.value:
+                return yat.model.Number(0)
+        if bnr.op == '*' and isinstance(rhs, yat.model.Number) and isinstance(lhs, yat.model.Reference):
+            if not rhs.value:
+                return yat.model.Number(0)
+        if bnr.op == '-' and isinstance(lhs, yat.model.Reference) and isinstance(rhs, yat.model.Reference):
+            if lhs.name == rhs.name:
+                return yat.model.Number(0)
         return yat.model.BinaryOperation(lhs, bnr.op, rhs)
 
     def visitUnaryOperation(self, unr):
         expr = self.visit(unr.expr)
         if isinstance(expr, yat.model.Number):
-            return unr.evaluate(Scope())
+            return unr.evaluate(yat.model.Scope())
         return yat.model.UnaryOperation(unr.op, expr)

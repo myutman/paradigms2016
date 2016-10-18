@@ -134,6 +134,7 @@ class BinaryOperation:
     def evaluate(self, scope):
         lhs = self.lhs.evaluate(scope)
         rhs = self.rhs.evaluate(scope)
+        print(lhs.__class__.__name__ + rhs.__class__.__name__)
         return Number(self.d[self.op](lhs.value, rhs.value))
 
 
@@ -152,50 +153,4 @@ class UnaryOperation:
 
 
 
-def example():
-    parent = Scope()
-    parent["foo"] = Function(('hello', 'world'),
-                             [Print(BinaryOperation(Reference('hello'),
-                                                    '+',
-                                                    Reference('world')))])
-    parent["bar"] = Number(10)
-    scope = Scope(parent)
-    assert 10 == scope["bar"].value
-    scope["bar"] = Number(20)
-    assert scope["bar"].value == 20
-    print('It should print 2: ', end=' ')
-    a = FunctionCall(Reference('foo'),
-                 [Number(5), UnaryOperation('-', Number(3))])
-    a.evaluate(scope)
-    ppt = yat.printer.PrettyPrinter()
-    ppt.visit(a, 0)
 
-def my_tests():
-    abacaba = Scope()
-    a = FunctionDefinition("divisor", Function(('n', 'i'), [Conditional(BinaryOperation(BinaryOperation(Reference('i'), '*', Reference('i')), '>', Reference('n')),
-                                 [Number(0)], [Conditional(BinaryOperation(Reference('n'), '%', Reference('i')), [FunctionCall(Reference("divisor"), [Reference('n'),
-                                 BinaryOperation(Reference('i'), '+', Number(1))])], [Number(1)])])]))
-    b = FunctionDefinition("next_prime", Function(('n'), [a, Conditional(FunctionCall(Reference("divisor"), [Reference('n'), Number(2)]),
-                                    [FunctionCall(Reference("next_prime"), [BinaryOperation(Reference('n'), '+', Number(1))])], [Reference('n')])]))
-    c = FunctionDefinition("main", Function([], [b, Print(FunctionCall(Reference("next_prime"), [Read("tmp")]))]))
-    d = FunctionCall(c, [])
-    #d.evaluate(abacaba)
-    ppt = yat.printer.PrettyPrinter()
-    print("\n")
-    ppt.visit(d, 0)
-    print()
-
-def my_tests2():
-    z = Conditional(BinaryOperation(Reference('a'), '==', Number(0)), [BinaryOperation(Reference('a'), '*', UnaryOperation('-', Number(0)))], [])
-    a = FunctionDefinition('ask', Function(('a'), [z]))
-    b = FunctionDefinition('func', Function(('a'), [a, FunctionCall(Reference('ask'), [BinaryOperation(Reference('a'), '-', Reference('a'))])]))
-    cf = yat.folder.ConstantFolder()
-    pp = yat.printer.PrettyPrinter()
-    c = cf.visit(b)
-    #print(type(c))
-    pp.visit(c, 0)
-
-if __name__ == '__main__':
-    example()
-    my_tests()
-    my_tests2()
