@@ -62,7 +62,7 @@ def my_tests3():
     a.append(yat.model.BinaryOperation(a[-1], '+', yat.model.BinaryOperation(yat.model.Reference('b'), '*', yat.model.Number(1))))
     c = yat.model.BinaryOperation(yat.model.Reference('a'), '*', yat.model.Number(0))
     d = yat.model.BinaryOperation(yat.model.Reference('b'), '*', yat.model.Number(0))
-    a.append(yat.model.BinaryOperation(a[-1], '+', yat.model.BinaryOperation(c, '*', d)))
+    a.append(yat.model.Print(yat.model.BinaryOperation(a[-1], '+', yat.model.BinaryOperation(c, '*', d))))
     z = yat.folder.ConstantFolder().visit(a[-1])
     yat.printer.PrettyPrinter().visit(z)
 
