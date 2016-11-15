@@ -38,5 +38,5 @@ fltmr l x = (filter' ls l) where ls y = (y > x)
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
 quickSort' [x] = [x]
-quickSort' l = concat' (concat' (quickSort' (fltls l (head l))) (flteq l (head l))) (quickSort' (fltmr l (head l)))
+quickSort' ls@(l:_) = concat' (concat' (quickSort' (fltls ls l)) (flteq ls l)) (quickSort' (fltmr ls l))
 
