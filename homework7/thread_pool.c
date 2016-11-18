@@ -5,23 +5,33 @@
 static volatile int cont = 1;
 
 void *doit(void* data){
-	struct ThreadPool* pool = *((struct ThreadPool**)data);
+	//fprintf(stderr, "%ull\n", (unsigned long)data);
+	struct ThreadPool* pool = (struct ThreadPool*)data;
+	//fprintf(stderr, "%ull\n", queue_size(&pool->tasks.squeue.queue));
+	//fprintf(stderr, "%ull\n", (unsigned long)&pool->tasks.squeue.queue);
+    //fprintf(stderr, "%ull\n", (unsigned long)pool);
+
 	//int i = *((int *)(data + sizeof(struct ThreadPool*)));
 	while (cont || queue_size(&pool->tasks.squeue.queue)){
+
 		struct list_node *node;
-		
+
 		pthread_mutex_lock(&pool->tasks.squeue.mutex);
-		while (cont && !queue_size(&pool->tasks.squeue.queue))
+		while (cont && !queue_size(&pool->tasks.squeue.queue)){
+			fprintf(stderr, "hello3\n");
 			pthread_cond_wait(&pool->tasks.cond, &pool->tasks.squeue.mutex);
+        }
+        fprintf(stderr, "hello4\n");
+		node = queue_pop(&pool->tasks.squeue.queue);
 		pthread_mutex_unlock(&pool->tasks.squeue.mutex);
-				
-		if (queue_size(&pool->tasks.squeue.queue)){
-			node = wsqueue_pop(&pool->tasks);			
-			struct Task* task = container_of(node, struct Task, node);		
+
+		if (node){
+			struct Task* task = container_of(node, struct Task, node);
+			//fprintf(stderr, "%d\n", (int)*((size_t*)((char*)task->arg + sizeof(int*))));
 			task->f(task->arg);
+			pthread_mutex_lock(&task->mutex);
 			task->done = 1;
-			pthread_mutex_lock(&task->mutex);		
-			pthread_cond_signal(&task->cond);
+			pthread_cond_broadcast(&task->cond);
 			pthread_mutex_unlock(&task->mutex);
 		}
 	}
@@ -36,32 +46,35 @@ void thpool_init(struct ThreadPool* pool, size_t threads_nm){
 		//void* arg = malloc(sizeof(struct ThreadPool*) + sizeof(int));
 		//*arg = pool;
 		//*(arg + sizeof(struct ThreadPool*)) = &i;
-		pthread_create(pool->threads + i, NULL, doit, &pool);
+		//fprintf(stderr, "%ull\n", queue_size(&pool->tasks.squeue.queue));
+		//fprintf(stderr, "%ull\n", (unsigned long)&pool->tasks.squeue.queue);
+		//fprintf(stderr, "%ull\n", (unsigned long)pool);
+		pthread_create(pool->threads + i, NULL, doit, pool);
 		//free(arg);
 	}
 }
 
 void thpool_submit(struct ThreadPool* pool, struct Task* task){
-	pthread_mutex_lock(&task->mutex);
+	//pthread_mutex_lock(&task->mutex);
 	wsqueue_push(&pool->tasks, &task->node);
-	wsqueue_notify(&pool->tasks);
-	pthread_mutex_unlock(&task->mutex);
+	//pthread_mutex_unlock(&task->mutex);
 }
 
 void thpool_wait(struct Task* task){
-	fprintf(stderr, "hello\n");	
+	//fprintf(stderr, "hello\n");
 	pthread_mutex_lock(&task->mutex);
-	fprintf(stderr, "hello1\n");
+	//fprintf(stderr, "hello1\n");
 	while (!task->done){
 		fprintf(stderr, "hello1\n");
 		pthread_cond_wait(&task->cond, &task->mutex);
 	}
-	pthread_mutex_unlock(&task->mutex);	
+	fprintf(stderr, "hello2\n");
+	pthread_mutex_unlock(&task->mutex);
 }
 
 void thpool_finit(struct ThreadPool* pool){
 	size_t threads_nm = pool->thread_number;
-	cont = 0;	
+	cont = 0;
 	wsqueue_notify_all(&pool->tasks);
 	for (size_t i = 0; i < threads_nm; i++)
 		pthread_join(pool->threads[i], NULL);
