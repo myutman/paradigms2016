@@ -5,6 +5,14 @@
 #include <assert.h>
 
 size_t rec_limit;
+pthread_mutex_t rand_mutex;
+
+int random(){
+	pthread_mutex_lock(&rand_mutex);
+	int ans = rand();
+	pthread_mutex_unlock(&rand_mutex);
+	return ans;
+}
 
 int intcmp(const void* a, const void* b){
 	return (*((int*)a) - *((int*)b));
@@ -34,12 +42,13 @@ void f (void* arg){
 		return;
 	}
 	if (n <= 1) return;
-	int x = array[rand() % n];
+	int x = array[random() % n];
+	//int x = array[n / 2];	
 	int *l = array;
 	int *r = array + n - 1;
 	while (l < r){
-		while (*l < x && l < r) l++;
-		while (*r > x && r > l) r--;
+		while (*l <= x && l < r) l++;
+		while (*r >= x && r > l) r--;
 		if (l < r) swap(l, r);
 	}
 
@@ -72,12 +81,12 @@ void f (void* arg){
 	//fprintf(stderr, "%d %d back\n", (int)dep, (int)n);
 }
 
-int ct = 0;
+//int ct = 0;
 
 void start_wait(struct Task* task){
 	thpool_wait(task);
-	ct++;
-	fprintf(stderr, "%d\n", ct);
+	//ct++;
+	//fprintf(stderr, "%d\n", ct);
 	for (size_t i = 0; i < task->child_num; i++)
 		start_wait(task->child[i]);
 	task_finit(task);
@@ -85,8 +94,9 @@ void start_wait(struct Task* task){
 }
 
 int main(int argc, char* argv[]) {
+	pthread_mutex_init(&rand_mutex, NULL);
 	double t = clock();
-	//srand(time(NULL));
+	srand(time(NULL));
 	size_t threads_nm, n;
 	if (argc < 4){
         threads_nm = 4;
@@ -101,7 +111,7 @@ int main(int argc, char* argv[]) {
 	int* array = malloc(n * sizeof(int));
 	//fprintf(stderr, "%d\n", (int)(n * sizeof(int)));
 	for (size_t i = 0; i < n; i++){
-		array[i] = rand();
+		array[i] = random();
 		//fprintf(stderr, "%d\n", array[i]);
 	}
 	struct Task* task = malloc(sizeof(struct Task));
@@ -116,7 +126,7 @@ int main(int argc, char* argv[]) {
 	thpool_submit(&tpool, task);
 	start_wait(task);
 
-	fprintf(stderr, "hello\n");
+	//fprintf(stderr, "hello\n");
 
 	thpool_finit(&tpool);
 	printf("%d\n", (int)n);
@@ -124,6 +134,7 @@ int main(int argc, char* argv[]) {
 		printf("%d ", array[i]);
 	}
 	free(array);
+	pthread_mutex_destroy(&rand_mutex);
 	fprintf(stderr, "%.6lf\n", (clock() - t) / CLOCKS_PER_SEC);
 	return 0;
 }

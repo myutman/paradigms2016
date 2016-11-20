@@ -18,10 +18,10 @@ void *doit(void* data){
 
 		pthread_mutex_lock(&pool->tasks.squeue.mutex);
 		while (cont && !queue_size(&pool->tasks.squeue.queue)){
-			fprintf(stderr, "hello3\n");
+			//fprintf(stderr, "hello3\n");
 			pthread_cond_wait(&pool->tasks.cond, &pool->tasks.squeue.mutex);
         }
-        fprintf(stderr, "hello4\n");
+        //fprintf(stderr, "hello4\n");
 		node = queue_pop(&pool->tasks.squeue.queue);
 		pthread_mutex_unlock(&pool->tasks.squeue.mutex);
 
@@ -65,10 +65,10 @@ void thpool_wait(struct Task* task){
 	pthread_mutex_lock(&task->mutex);
 	//fprintf(stderr, "hello1\n");
 	while (!task->done){
-		fprintf(stderr, "hello1\n");
+		//fprintf(stderr, "hello1\n");
 		pthread_cond_wait(&task->cond, &task->mutex);
 	}
-	fprintf(stderr, "hello2\n");
+	//fprintf(stderr, "hello2\n");
 	pthread_mutex_unlock(&task->mutex);
 }
 
