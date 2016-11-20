@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 	//tpool = malloc(sizeof(struct ThreadPool));
 	thpool_init(&tpool, threads_nm);
 	thpool_submit(&tpool, (struct Task*) arg);
-	start_wait((struct Task*) arg);
+	start_wait(task);
 
 	fprintf(stderr, "hello\n");
 
