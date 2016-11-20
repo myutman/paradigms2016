@@ -20,11 +20,13 @@ struct ThreadPool tpool;
 
 void f (void* arg){
 
-	struct Task* task = (struct Task*) arg;
-	int* array = *((int**)((char*)arg + sizeof(struct Task)));
-	size_t n = *((size_t*)((char*)arg + sizeof(struct Task) + sizeof(int*)));
-	size_t dep = *((size_t*)((char*)arg + sizeof(struct Task) + sizeof(int*) + sizeof(size_t)));
+	int* array = *((int**)arg);
+	size_t n = *((size_t*)((char*)arg + sizeof(int*)));
+	size_t dep = *((size_t*)((char*)arg + sizeof(int*) + sizeof(size_t)));
+	//fprintf(stderr, "%d %d\n", (int)dep, (int)n);
+	struct Task* task = *((struct Task**)((char*)arg + sizeof(int*) + 2 * sizeof(size_t)));
 
+	free(arg);
 	if (dep == rec_limit){
 		//fprintf(stderr, "inq\n");
 		qsort(array, n, sizeof(int), intcmp);
@@ -41,25 +43,31 @@ void f (void* arg){
 		if (l < r) swap(l, r);
 	}
 
-	void* arg1 = malloc(sizeof(struct Task) + sizeof(int*) + sizeof(size_t) + sizeof(size_t));
-	task_init(arg1, f, arg1);
-	*((int**)((char*)arg1 + sizeof(struct Task))) = array;
-	*((size_t*)((char*)arg1 + sizeof(struct Task) + sizeof(int*))) = l - array;
-	*((size_t*)((char*)arg1 + sizeof(struct Task) + sizeof(int*) + sizeof(size_t))) = dep + 1;
+	struct Task* task1 = malloc(sizeof(struct Task));
+	struct Task* task2 = malloc(sizeof(struct Task));
 
-    void* arg2 = malloc(sizeof(struct Task) + sizeof(int*) + sizeof(size_t) + sizeof(size_t));
-	task_init(arg2, f, arg2);
-	*((int**)((char*)arg2 + sizeof(struct Task))) = l;
-	*((size_t*)((char*)arg2 + sizeof(struct Task) + sizeof(int*))) = n - (l - array);
-	*((size_t*)((char*)arg2 + sizeof(struct Task) + sizeof(int*) + sizeof(size_t))) = dep + 1;
+	void* arg1 = malloc(sizeof(int*) + sizeof(size_t) + sizeof(size_t) + sizeof(struct Task*));
+	*((int**)arg1) = array;
+	*((size_t*)((char*)arg1 + sizeof(int*))) = l - array;
+	*((size_t*)((char*)arg1 + sizeof(int*) + sizeof(size_t))) = dep + 1;
+	*((struct Task**)((char*)arg1 + sizeof(int*) + 2 * sizeof(size_t))) = task1;
+
+	void* arg2 = malloc(sizeof(int*) + sizeof(size_t) + sizeof(size_t) + sizeof(struct Task*));
+	*((int**)arg2) = array;
+	*((size_t*)((char*)arg2 + sizeof(int*))) = n - (l - array);
+	*((size_t*)((char*)arg2 + sizeof(int*) + sizeof(size_t))) = dep + 1;
+	*((struct Task**)((char*)arg2 + sizeof(int*) + 2 * sizeof(size_t))) = task2;
+
+	task_init(task1, f, arg1);
+	task_init(task2, f, arg2);
 
 	task->child = malloc(2 * sizeof(struct Task*));
-	task->child[0] = (struct Task*) arg1;
-	task->child[1] = (struct Task*) arg2;
+	task->child[0] = task1;
+	task->child[1] = task2;
 	task->child_num	= 2;
 
-	thpool_submit(&tpool, (struct Task*) arg1);
-	thpool_submit(&tpool, (struct Task*) arg2);
+	thpool_submit(&tpool, task1);
+	thpool_submit(&tpool, task2);
 
 	//fprintf(stderr, "%d %d back\n", (int)dep, (int)n);
 }
@@ -96,15 +104,17 @@ int main(int argc, char* argv[]) {
 		array[i] = rand();
 		//fprintf(stderr, "%d\n", array[i]);
 	}
-	void* arg = malloc(sizeof(struct Task) + sizeof(int*) + sizeof(size_t) + sizeof(size_t));
-	task_init(arg, f, (struct Task*) arg);
-	*((int**)((char*)arg + sizeof(struct Task))) = array;
-	*((size_t*)((char*)arg + sizeof(struct Task) + sizeof(int*))) = n;
-	*((size_t*)((char*)arg + sizeof(struct Task) + sizeof(int*) + sizeof(size_t))) = 0;
+	struct Task* task = malloc(sizeof(struct Task));
+	void* arg = malloc(sizeof(int*) + sizeof(size_t) + sizeof(size_t) + sizeof(struct Task*));
+	*((int**)arg) = array;
+	*((size_t*)((char*)arg + sizeof(int*))) = n;
+	*((size_t*)((char*)arg + sizeof(int*) + sizeof(size_t))) = 0;
+	*((struct Task**)((char*)arg + sizeof(int*) + 2 * sizeof(size_t))) = task;
+	task_init(task, f, arg);
 	//tpool = malloc(sizeof(struct ThreadPool));
 	thpool_init(&tpool, threads_nm);
-	thpool_submit(&tpool, (struct Task*) arg);
-	start_wait((struct Task*) arg);
+	thpool_submit(&tpool, task);
+	start_wait(task);
 
 	fprintf(stderr, "hello\n");
 
