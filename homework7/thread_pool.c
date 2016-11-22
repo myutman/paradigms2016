@@ -54,6 +54,16 @@ void thpool_init(struct ThreadPool* pool, size_t threads_nm){
 	}
 }
 
+void start_wait(struct Task* task){
+	thpool_wait(task);
+	//ct++;
+	//fprintf(stderr, "%d\n", ct);
+	for (size_t i = 0; i < task->child_num; i++)
+		start_wait(task->child[i]);
+	task_finit(task);
+	free(container_of(task, struct Arg, task));
+}
+
 void thpool_submit(struct ThreadPool* pool, struct Task* task){
 	//pthread_mutex_lock(&task->mutex);
 	wsqueue_push(&pool->tasks, &task->node);

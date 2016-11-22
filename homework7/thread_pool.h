@@ -14,12 +14,20 @@ struct Task {
 	struct Task** child;
 };
 
+struct Arg{
+	int* array;
+	size_t n;
+	size_t dep;
+	struct Task task;
+};
+
 struct ThreadPool {
 	struct wsqueue tasks;
 	pthread_t* threads;
 	size_t thread_number;
 };
 
+void start_wait(struct Task* task);
 void thpool_init(struct ThreadPool* pool, size_t threads_nm); 
 void thpool_submit(struct ThreadPool* pool, struct Task* task);
 void thpool_wait(struct Task* task); 

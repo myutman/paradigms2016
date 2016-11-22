@@ -27,14 +27,13 @@ void swap(int* a, int *b){
 struct ThreadPool tpool;
 
 void f (void* arg){
-
-	int* array = *((int**)arg);
-	size_t n = *((size_t*)((char*)arg + sizeof(int*)));
-	size_t dep = *((size_t*)((char*)arg + sizeof(int*) + sizeof(size_t)));
+	struct Arg* tmp = (struct Arg*) arg;
+	int* array = tmp->array;
+	size_t n = tmp->n;
+	size_t dep = tmp->dep;
 	//fprintf(stderr, "%d %d\n", (int)dep, (int)n);
-	struct Task* task = *((struct Task**)((char*)arg + sizeof(int*) + 2 * sizeof(size_t)));
+	struct Task* task = &tmp->task;
 
-	free(arg);
 	if (dep == rec_limit){
 		//fprintf(stderr, "inq\n");
 		qsort(array, n, sizeof(int), intcmp);
@@ -43,65 +42,48 @@ void f (void* arg){
 	}
 	if (n <= 1) return;
 	int x = array[random() % n];
-	//int x = array[n / 2];	
+	//int x = array[n / 2];
 	int *l = array;
 	int *r = array + n - 1;
 	while (l < r){
-		while (*l <= x && l < r) l++;
+		while (*l < x && l < r) l++;
 		while (*r >= x && r > l) r--;
 		if (l < r) swap(l, r);
 	}
 
-	struct Task* task1 = malloc(sizeof(struct Task));
-	struct Task* task2 = malloc(sizeof(struct Task));
+	struct Arg* arg1 = malloc(sizeof(struct Arg));
+	struct Arg* arg2 = malloc(sizeof(struct Arg));
 
-	void* arg1 = malloc(sizeof(int*) + sizeof(size_t) + sizeof(size_t) + sizeof(struct Task*));
-	*((int**)arg1) = array;
-	*((size_t*)((char*)arg1 + sizeof(int*))) = l - array;
-	*((size_t*)((char*)arg1 + sizeof(int*) + sizeof(size_t))) = dep + 1;
-	*((struct Task**)((char*)arg1 + sizeof(int*) + 2 * sizeof(size_t))) = task1;
+	arg1->array = array;
+	arg1->n = l - array;
+	arg1->dep = dep + 1;
+	task_init(&arg1->task, f, arg1);
 
-	void* arg2 = malloc(sizeof(int*) + sizeof(size_t) + sizeof(size_t) + sizeof(struct Task*));
-	*((int**)arg2) = array;
-	*((size_t*)((char*)arg2 + sizeof(int*))) = n - (l - array);
-	*((size_t*)((char*)arg2 + sizeof(int*) + sizeof(size_t))) = dep + 1;
-	*((struct Task**)((char*)arg2 + sizeof(int*) + 2 * sizeof(size_t))) = task2;
-
-	task_init(task1, f, arg1);
-	task_init(task2, f, arg2);
+	arg2->array = l;
+	arg2->n = n - (l - array);
+	arg2->dep = dep + 1;
+	task_init(&arg2->task, f, arg2);
 
 	task->child = malloc(2 * sizeof(struct Task*));
-	task->child[0] = task1;
-	task->child[1] = task2;
+	task->child[0] = &arg1->task;
+	task->child[1] = &arg2->task;
 	task->child_num	= 2;
 
-	thpool_submit(&tpool, task1);
-	thpool_submit(&tpool, task2);
+	thpool_submit(&tpool, &arg1->task);
+	thpool_submit(&tpool, &arg2->task);
 
 	//fprintf(stderr, "%d %d back\n", (int)dep, (int)n);
-}
-
-//int ct = 0;
-
-void start_wait(struct Task* task){
-	thpool_wait(task);
-	//ct++;
-	//fprintf(stderr, "%d\n", ct);
-	for (size_t i = 0; i < task->child_num; i++)
-		start_wait(task->child[i]);
-	task_finit(task);
-	free(task);
 }
 
 int main(int argc, char* argv[]) {
 	pthread_mutex_init(&rand_mutex, NULL);
 	double t = clock();
-	srand(time(NULL));
+	srand(42);
 	size_t threads_nm, n;
 	if (argc < 4){
-        threads_nm = 4;
-        n = 500000;
-        rec_limit = 15;
+        threads_nm = 1;
+        n = 10;
+        rec_limit = 4;
 	}
     else {
         threads_nm = atoi(argv[1]);
@@ -114,27 +96,27 @@ int main(int argc, char* argv[]) {
 		array[i] = random();
 		//fprintf(stderr, "%d\n", array[i]);
 	}
-	struct Task* task = malloc(sizeof(struct Task));
-	void* arg = malloc(sizeof(int*) + sizeof(size_t) + sizeof(size_t) + sizeof(struct Task*));
-	*((int**)arg) = array;
-	*((size_t*)((char*)arg + sizeof(int*))) = n;
-	*((size_t*)((char*)arg + sizeof(int*) + sizeof(size_t))) = 0;
-	*((struct Task**)((char*)arg + sizeof(int*) + 2 * sizeof(size_t))) = task;
-	task_init(task, f, arg);
+	struct Arg* arg = malloc(sizeof(struct Arg));
+	arg->array = array;
+	arg->n = n;
+	arg->dep = 0;
+	task_init(&arg->task, f, arg);
 	//tpool = malloc(sizeof(struct ThreadPool));
 	thpool_init(&tpool, threads_nm);
-	thpool_submit(&tpool, task);
-	start_wait(task);
+	thpool_submit(&tpool, &arg->task);
+	start_wait(&arg->task);
 
 	//fprintf(stderr, "hello\n");
 
 	thpool_finit(&tpool);
-	printf("%d\n", (int)n);
-	for (size_t i = 0; i < n; i++){
-		printf("%d ", array[i]);
+	int sorted = 1;
+	for (size_t i = 1; i < n; i++){
+		if (array[i] < array[i - 1]) sorted = 0;
 	}
 	free(array);
 	pthread_mutex_destroy(&rand_mutex);
+	if (sorted) fprintf(stderr, "sorted\n");
+	else fprintf(stderr, "not sorted:(\n");
 	fprintf(stderr, "%.6lf\n", (clock() - t) / CLOCKS_PER_SEC);
 	return 0;
 }
