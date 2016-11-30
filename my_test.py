@@ -31,5 +31,5 @@ if (__name__ == "__main__"):
 	test_bo()
 	test_scope()
 	test_cond()
-	read()
+	#read()
 
