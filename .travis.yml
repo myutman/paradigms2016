@@ -9,7 +9,7 @@ python:
   - "3.4"
   - "nightly"
 install:
-  - pip3 install pytest
   - pip install pytest
+  - pip3 install pytest
 script:
   - py.test my_test.py
