@@ -7,9 +7,11 @@ python:
   - "3.4"
   - "nightly"
 install:
-  - pip install pytest
   - pip3 install pytest
+  - pip3 install pytest-pep8
+  - pip3 install pytest-cov
+  - pip3 install python-coveralls
 script:
-  - py.test my_test.py
+  - py.test my_test.py --cov
 after_success:
   - coveralls
