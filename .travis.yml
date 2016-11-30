@@ -12,4 +12,4 @@ python:
 install:
   - pip3 install pytest
 script:
-  - python3 my_test.py
+  - py.test my_test.py
