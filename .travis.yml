@@ -3,13 +3,15 @@ os:
 language: 
   - python
 python:
-  - "2.6"
-  - "2.7"
   - "3.3"
   - "3.4"
   - "nightly"
 install:
   - pip3 install pytest
-  - pip install pytest
+  - pip3 install pytest-pep8
+  - pip3 install pytest-cov
+  - pip3 install python-coveralls
 script:
-  - py.test my_test.py
+  - py.test my_test.py --cov my_test.py -v
+after_success:
+  - coveralls
