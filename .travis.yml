@@ -12,6 +12,6 @@ install:
   - pip3 install pytest-cov
   - pip3 install python-coveralls
 script:
-  - py.test homework11/my_test.py --cov homework11/my_test.py -v
+  - py.test homework11/my_test.py --cov homework11/model.py -v
 after_success:
   - coveralls
