@@ -50,8 +50,6 @@ class FunctionDefinition:
 
 class Conditional:
 
-    
-
     def __init__(self, condition, if_true, if_false=None):
         self.condition = condition
         self.if_true = if_true
@@ -59,9 +57,6 @@ class Conditional:
 
     def evaluate(self, scope):
         branch = self.if_true if self.condition.evaluate(scope).value else self.if_false
-        tmp = None
-        if branch == None:
-        	return tmp
         for var in branch:
             tmp = var.evaluate(scope)
         return tmp
@@ -128,7 +123,7 @@ class BinaryOperation:
         self.rhs = rhs
         self.d = {'+': (lambda x,y: x + y), '*': (lambda x,y: x * y), '-': (lambda x,y: x - y), '/': (lambda x,y: x // y),
                   '%': (lambda x,y: x % y), '==': (lambda x,y: x == y), '!=': (lambda x,y: x != y), '<': (lambda x,y: x < y),
-                  '>': (lambda x,y: x > y), '<=': (lambda x,y: x <= y), '>=': (lambda x,y: x >= y), '&&': (lambda x,y: x and y), '||': (lambda x,y: x or y)}
+                  '>': (lambda x,y: x > y), '<=': (lambda x,y: x <= y), '>=': (lambda x,y: x >= y), '&&': (lambda x,y: (x != 0) and (y != 0)), '||': (lambda x,y: (x != 0) or (y != 0))}
 
     def evaluate(self, scope):
         lhs = self.lhs.evaluate(scope)
@@ -142,7 +137,7 @@ class UnaryOperation:
     def __init__(self, op, expr):
         self.op = op
         self.expr = expr
-        self.d = {'-': (lambda x: -x), '!': (lambda x: not x)}
+        self.d = {'-': (lambda x: -x), '!': (lambda x: x == 0)}
 
     def evaluate(self, scope):
         expr = self.expr.evaluate(scope)
@@ -150,7 +145,7 @@ class UnaryOperation:
        
 
 
-def example():
+"""def example():
     parent = Scope()
     parent["foo"] = Function(('hello', 'world'),
                              [Print(BinaryOperation(Reference('hello'),
@@ -163,9 +158,9 @@ def example():
     assert scope["bar"].value == 20
     print('It should print 2: ', end=' ')
     FunctionCall(Reference('foo'),
-                 [Number(5), UnaryOperation('-', Number(3))]).evaluate(scope)
+                 [Number(5), UnaryOperation('-', Number(3))]).evaluate(scope)"""
 
-def my_tests():
+"""def my_tests():
     abacaba = Scope()
     abacaba["divisor"] = Function(('n', 'i'), [Conditional(BinaryOperation(BinaryOperation(Reference('i'), '*', Reference('i')), '>', Reference('n')),
                                  [Number(0)], [Conditional(BinaryOperation(Reference('n'), '%', Reference('i')), [FunctionCall(Reference("divisor"), [Reference('n'),
@@ -173,8 +168,8 @@ def my_tests():
     abacaba["next_prime"] = Function(('n'), [Conditional(FunctionCall(Reference("divisor"), [Reference('n'), Number(2)]),
                                     [FunctionCall(Reference("next_prime"), [BinaryOperation(Reference('n'), '+', Number(1))])], [Reference('n')])])
     abacaba["main"] = Function([], [Print(FunctionCall(Reference('next_prime'), [Read("tmp")]))])
-    FunctionCall(Reference("main"), []).evaluate(abacaba)
+    FunctionCall(Reference("main"), []).evaluate(abacaba)"""
 
-if __name__ == '__main__':
+"""if __name__ == '__main__':
     example()
-    my_tests()
+    my_tests()"""
