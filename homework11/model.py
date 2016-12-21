@@ -99,8 +99,6 @@ class FunctionCall:
     def evaluate(self, scope):
         function = self.fun_expr.evaluate(scope)
         call_scope = Scope(scope)
-        if function == None:
-        	return None
         lst = [] 
         for name, arg in zip(function.args, self.args):
             call_scope[name] = arg.evaluate(scope)
