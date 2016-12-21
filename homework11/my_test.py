@@ -46,7 +46,7 @@ class UnaryOperationTest(TestCase):
 		assert compare(UnaryOperation('-', Number(1)), -1)
 	
 	def test_not(self):
-		assert compare(UnaryOperation('!', Number(2)), False)
+		assert compare(UnaryOperation('!', Number(2)), False) or compare(UnaryOperation('!', Number(2)), 0)
 
 class ConditionalTest(TestCase):
 
