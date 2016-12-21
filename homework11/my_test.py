@@ -56,8 +56,12 @@ class ConditionalTest(TestCase):
 	def test_false(self):
 		assert compare(Conditional(Number(0), [Number(2)], [Number(3)]), 3)
 	
-	def test_empty(self):
+	def test_true_empty(self):
 		assert compare(Conditional(Number(1), [Number(2)]), 2)
+	
+	def test_false_empty(self):
+		scope = Scope()
+		Conditional(Number(0), [Number(2)]).evaluate(scope)
 
 class ReferenceTest(TestCase):
 
@@ -85,6 +89,10 @@ class FunctionTest(TestCase):
 		parent["foo"] = Function(('hello', 'world'), [BinaryOperation(Reference('hello'), '+', Reference('world'))])
 		assert compare(FunctionCall(FunctionDefinition('foo', parent['foo']), [Number(2), UnaryOperation('-', Number(3))]).evaluate(scope), -1)
 
+	def test_empty(self):
+		scope = Scope()
+		FunctionCall(Function(('a'), []), [5]).evaluate(scope)
+
 class AllTest(TestCase):
 
 	def test_my(self):
@@ -97,4 +105,3 @@ class AllTest(TestCase):
     	                                    [FunctionCall(Reference("next_prime"), [BinaryOperation(Reference('n'), '+', Number(1))])], [Reference('n')])])
 			abacaba["main"] = Function([], [FunctionCall(Reference('next_prime'), [Read("tmp")])])
 			assert compare(FunctionCall(Reference("main"), []).evaluate(abacaba), 43)
-
