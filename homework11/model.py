@@ -57,6 +57,9 @@ class Conditional:
 
     def evaluate(self, scope):
         branch = self.if_true if self.condition.evaluate(scope).value else self.if_false
+        tmp = None
+        if branch == None:
+        	return tmp
         for var in branch:
             tmp = var.evaluate(scope)
         return tmp
@@ -96,6 +99,8 @@ class FunctionCall:
     def evaluate(self, scope):
         function = self.fun_expr.evaluate(scope)
         call_scope = Scope(scope)
+        if function == None:
+        	return None
         lst = [] 
         for name, arg in zip(function.args, self.args):
             call_scope[name] = arg.evaluate(scope)
