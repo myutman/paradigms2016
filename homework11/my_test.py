@@ -91,7 +91,8 @@ class FunctionTest(TestCase):
 
 	def test_empty(self):
 		scope = Scope()
-		FunctionCall(Function(('a'), []), [5]).evaluate(scope)
+		scope["aba"] = Function(('a'), []) 
+		FunctionCall(Reference("aba"), [Number(5)]).evaluate(scope)
 
 class AllTest(TestCase):
 
