@@ -19,4 +19,11 @@ for a in $s; do
 	fi
 	i=$(bc <<< "($i + 1) % 3");
 done
-
+lvcreate my_vgroup -n ltmp -L1G
+size=$(du -h -s /home | grep -oP '.*\t')
+num=$(bc <<< "1.5 * $(grep -oP '[\.0-9]+' <<< $size)")
+suf=$(grep -oP '[A-B]' <<< $size)
+size=$num$suf
+lvcreate my_vgroup -n lhome -L$size
+mkfs.ext4 /dev/my_vgroup/ltmp
+mkfs.ext4 /dev/my_vgroup/lhome
