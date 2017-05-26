@@ -27,3 +27,41 @@ size=$num$suf
 lvcreate my_vgroup -n lhome -L$size
 mkfs.ext4 /dev/my_vgroup/ltmp
 mkfs.ext4 /dev/my_vgroup/lhome
+s=$(blkid | sed -n -r -e 's/.*\/(sda[0-9]).*TYPE="([a-z0-9]+)" .*$/\1 \2/p')
+i=0
+for a in $s; do
+	if [ $i -eq 0 ]; then
+		name=$a
+	fi
+	if [ $i -eq 1 ]; then
+		if [[ $a = swap ]]; then
+			mkswap /dev/my_vgroup/l$name
+		else
+			mkfs.$a /dev/my_vgroup/l$name
+		fi
+		dd if=/dev/$name of=/dev/my_vgroup/l$name bs=1M
+		ID=$(blkid | grep -oP "/dev/$name.* UUID=\"\K[a-z0-9\-]+")
+		dir=$(df -h | grep -oP "/dev/$name.* /\K[a-zA-Z0-9]+")
+		echo "$ID $dir"
+		if [[ $dir != boot ]]; then
+			sed -i -r -e "s/(UUID=$ID|\/dev\/$name)/\/dev\/my_vgroup\/l$name/g" /etc/fstab
+		fi
+	fi
+	i=$(bc <<< "($i + 1) % 2")
+done
+mount /dev/my_vgroup/ltmp /mnt
+cd /tmp
+tar cf - . | (cd /mnt && tar xf -)
+umount /mnt
+mount /dev/my_vgroup/lhome /mnt
+cd /home
+tar cf - . | (cd /mnt && tar xf -)
+umount /mnt
+a=$(grep -oP 'ltmp' /etc/fstab)
+if [[ $a != ltmp ]]; then
+	cat >> /etc/fstab <<< "/dev/my_vgroup/ltmp /tmp ext4 defaults 0 0"
+fi
+a=$(grep -oP 'lhome' /etc/fstab)
+if [[ $a != lhome ]]; then
+	cat >> /etc/fstab <<< "/dev/my_vgroup/lhome /home ext4 defaults 0 0"
+fi
