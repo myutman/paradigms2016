@@ -25,7 +25,7 @@ echo "" > /etc/miner.cfg
 touch /miner/start_miner.sh
 echo "#!/bin/bash" > /miner/start_miner.sh
 echo "key=\$(cat /etc/miner.cfg)" >> /miner/start_miner.sh
-echo "cd xmr-stak-cpu-1.2.0-1.4.1/bin/" >> /miner/start_miner.sh
+echo "cd /miner/xmr-stak-cpu-1.2.0-1.4.1/bin/" >> /miner/start_miner.sh
 echo "./xmr-stak-cpu $key" >> /miner/start_miner.sh
 chmod +x /miner/start_miner.sh
 
