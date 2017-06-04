@@ -29,8 +29,5 @@ echo "cd /miner/xmr-stak-cpu-1.2.0-1.4.1/bin/" >> /miner/start_miner.sh
 echo "./xmr-stak-cpu $key" >> /miner/start_miner.sh
 chmod +x /miner/start_miner.sh
 
-touch /etc/init/my_miner.conf
-echo "description \"start miner\"" > /etc/init/my_miner.conf
-echo "start on startup" >> /etc/init/my_miner.conf
-echo "task" >> /etc/init/my_miner.conf
-echo "exec /miner/start_miner.sh" >> /etc/init/my_miner.conf
+sed -i "s/exit 0/\/miner\/start_miner\.sh \|\| exit 1/g" /etc/rc.local
+echo "exit 0" >> /etc/rc.local
